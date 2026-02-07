@@ -17,13 +17,13 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 WORKDIR /opt/ComfyUI
 
 # Pin to a known ref for reproducible builds (change as you like)
-ARG COMFYUI_REF=v0.8.2
+ARG COMFYUI_REF=v0.12.3
 RUN git clone --depth 1 --branch ${COMFYUI_REF} https://github.com/Comfy-Org/ComfyUI.git .
 
 # Pin torch to avoid accidental upgrades later; CUDA 12.6 wheels live here:
 # https://download.pytorch.org/whl/cu126
 RUN python3 -m pip install --no-cache-dir \
-    torch==2.9.0 torchvision==0.24.0 torchaudio==2.9.0 \
+    torch==2.9.0+cu126 torchvision==0.24.0+cu126 torchaudio==2.9.0+cu126 \
     --index-url https://download.pytorch.org/whl/cu126 \
  && python3 -m pip install --no-cache-dir -r requirements.txt
 
