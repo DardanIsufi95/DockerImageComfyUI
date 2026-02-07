@@ -2,8 +2,7 @@ FROM nvidia/cuda:12.6.2-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8188
+    PYTHONUNBUFFERED=1 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip \
@@ -46,4 +45,4 @@ EXPOSE 8188
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
   CMD curl -fsS "http://127.0.0.1:${PORT}/system_stats" >/dev/null || exit 1
 
-CMD ["sh", "-lc", "python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch"]
+CMD ["sh", "-lc", "python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch --disable-mmap"]
