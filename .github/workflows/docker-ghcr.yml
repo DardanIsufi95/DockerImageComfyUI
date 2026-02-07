@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_NAME: dardanisufi95/comfyui-cloudrun
+  
 
 jobs:
   build-and-push:
@@ -51,3 +52,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
