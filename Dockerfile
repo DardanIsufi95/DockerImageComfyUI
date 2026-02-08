@@ -2,7 +2,7 @@ FROM nvidia/cuda:12.6.2-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONUNBUFFERED=1 
+    PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip \
@@ -29,12 +29,21 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt \
  && python3 -c "import torch; print('torch OK', torch.__version__)" \
  && python3 -m pip check
 
+# NEW: GCS client
+RUN python3 -m pip install --no-cache-dir google-cloud-storage
+
 RUN mkdir -p \
     models/checkpoints models/clip models/clip_vision models/configs \
     models/controlnet models/diffusers models/embeddings models/gligen \
     models/hypernetworks models/loras models/style_models models/unet \
     models/upscale_models models/vae models/vae_approx \
-    output input
+    output input \
+    \
+    # NEW: your folders
+    models/diffusion_models models/text_encoders models/vae
+
+# NEW: copy separate downloader file
+COPY download_models.py /opt/ComfyUI/download_models.py
 
 RUN useradd -m -u 10001 comfy \
  && chown -R comfy:comfy /opt/ComfyUI
@@ -45,4 +54,5 @@ EXPOSE 8188
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
   CMD curl -fsS "http://127.0.0.1:${PORT}/system_stats" >/dev/null || exit 1
 
-CMD ["sh", "-lc", "python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch --disable-mmap"]
+# NEW: download models first (fast local load afterwards)
+CMD ["sh", "-lc", "python3 /opt/ComfyUI/download_models.py && python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch --disable-mmap"]
