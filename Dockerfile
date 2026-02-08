@@ -32,15 +32,6 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt \
 # NEW: GCS client
 RUN python3 -m pip install --no-cache-dir google-cloud-storage
 
-RUN mkdir -p \
-    models/checkpoints models/clip models/clip_vision models/configs \
-    models/controlnet models/diffusers models/embeddings models/gligen \
-    models/hypernetworks models/loras models/style_models models/unet \
-    models/upscale_models models/vae models/vae_approx \
-    output input \
-    \
-    # NEW: your folders
-    models/diffusion_models models/text_encoders models/vae
 
 # NEW: copy separate downloader file
 COPY download_models.py /opt/ComfyUI/download_models.py
