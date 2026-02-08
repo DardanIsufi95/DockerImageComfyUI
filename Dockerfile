@@ -29,12 +29,11 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt \
  && python3 -c "import torch; print('torch OK', torch.__version__)" \
  && python3 -m pip check
 
-# NEW: GCS client
-RUN python3 -m pip install --no-cache-dir google-cloud-storage
 
-
-# NEW: copy separate downloader file
-COPY download_models.py /opt/ComfyUI/download_models.py
+# Bake the 3 models into the image (these files come from Cloud Build step)
+COPY models/diffusion_models/z_image_turbo_bf16.safetensors /opt/ComfyUI/models/diffusion_models/z_image_turbo_bf16.safetensors
+COPY models/text_encoders/qwen_3_4b.safetensors /opt/ComfyUI/models/text_encoders/qwen_3_4b.safetensors
+COPY models/vae/ae.safetensors /opt/ComfyUI/models/vae/ae.safetensors
 
 RUN useradd -m -u 10001 comfy \
  && chown -R comfy:comfy /opt/ComfyUI
@@ -45,5 +44,4 @@ EXPOSE 8188
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
   CMD curl -fsS "http://127.0.0.1:${PORT}/system_stats" >/dev/null || exit 1
 
-# NEW: download models first (fast local load afterwards)
-CMD ["sh", "-lc", "python3 /opt/ComfyUI/download_models.py && python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch --disable-mmap"]
+CMD ["sh", "-lc", "python3 main.py --listen 0.0.0.0 --port ${PORT} --disable-auto-launch --disable-mmap"]

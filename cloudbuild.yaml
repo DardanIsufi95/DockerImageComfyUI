@@ -1,0 +1,85 @@
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: DownloadModels
+    entrypoint: bash
+    args:
+      - -lc
+      - |
+        set -euo pipefail
+
+        BUCKET="ecreatemodels-cloud-run-data"
+        mkdir -p models/diffusion_models models/text_encoders models/vae
+
+        # Download the 3 model files into the Docker build context
+        gsutil -m cp \
+          "gs://${BUCKET}/diffusion_models/z_image_turbo_bf16.safetensors" \
+          "models/diffusion_models/z_image_turbo_bf16.safetensors"
+
+        gsutil -m cp \
+          "gs://${BUCKET}/text_encoders/qwen_3_4b.safetensors" \
+          "models/text_encoders/qwen_3_4b.safetensors"
+
+        gsutil -m cp \
+          "gs://${BUCKET}/vae/ae.safetensors" \
+          "models/vae/ae.safetensors"
+
+        ls -lh models/diffusion_models models/text_encoders models/vae
+
+  - name: gcr.io/cloud-builders/docker
+    id: Build
+    args:
+      - build
+      # Remove --no-cache unless you enjoy slow builds.
+      # - '--no-cache'
+      - '-t'
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - .
+      - '-f'
+      - Dockerfile
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push
+    args:
+      - push
+      - >-
+        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: Deploy
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - >-
+        --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+
+images:
+  - >-
+    $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+
+options:
+  substitutionOption: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _DEPLOY_REGION: europe-west4
+  _AR_HOSTNAME: europe-west4-docker.pkg.dev
+  _AR_REPOSITORY: cloud-run-source-deploy
+  _TRIGGER_ID: c873679e-faf0-4da3-a7a0-bf65ffd9fc6b
+  _AR_PROJECT_ID: ecreatemodels
+  _PLATFORM: managed
+  _SERVICE_NAME: dockerimagecomfyui
+  REPO_NAME: dockerimagecomfyui
+
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - dockerimagecomfyui
