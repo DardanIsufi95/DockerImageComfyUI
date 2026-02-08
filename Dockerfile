@@ -20,8 +20,8 @@ RUN git clone --depth 1 --branch "${COMFYUI_REF}" https://github.com/Comfy-Org/C
 
 # 1) Install GPU torch stack from the PyTorch CUDA 12.6 index ONLY
 RUN python3 -m pip install --no-cache-dir \
-    torch==2.9.0+cu130 torchvision==0.24.0+cu130 torchaudio==2.9.0+cu130 \
-    --index-url https://download.pytorch.org/whl/cu130
+    torch==2.9.0+cu126 torchvision==0.24.0+cu126 torchaudio==2.9.0+cu126 \
+    --index-url https://download.pytorch.org/whl/cu126
 
 # 2) Install the rest from normal PyPI (requirements.txt)
 RUN python3 -m pip install --no-cache-dir -r requirements.txt \
