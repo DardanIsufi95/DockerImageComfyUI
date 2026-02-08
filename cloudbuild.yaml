@@ -70,6 +70,7 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
+  BUCKET: ecreatemodels-cloud-run-data
   _DEPLOY_REGION: europe-west4
   _AR_HOSTNAME: europe-west4-docker.pkg.dev
   _AR_REPOSITORY: cloud-run-source-deploy
